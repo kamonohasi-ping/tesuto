@@ -1,17 +1,29 @@
-# Streamlitライブラリをインポート
 import streamlit as st
-st.title('あいうえお')
-st.write('まずは名前を教えて')
+import random
 
-user_name = st.text_input("名前を入力")
+# タイトル
+st.title("じゃんけんゲーム")
 
-st.header('あなたの名前は'+str(user_name)+'です')
+# 選択肢
+hands = ["グー", "チョキ", "パー"]
 
-h=st.number_input('身長を入力してください(m)',value=1.70)
-w=st.number_input('体重を入力してください(kg)',value=70)
+# プレイヤーの手
+player_hand = st.radio("あなたの手を選んでください", hands)
 
-bmi=w/(h**2)
+# ボタンで勝負
+if st.button("勝負！"):
+    # コンピューターの手をランダムに選ぶ
+    computer_hand = random.choice(hands)
 
-dbmi=round(bmi,2)
+    # 結果の表示
+    st.write(f"あなたの手：{player_hand}")
+    st.write(f"コンピューターの手：{computer_hand}")
 
-st.header('あなたのBMIは'+str(dbmi)+'です')
+    # 勝敗判定
+    if player_hand == computer_hand:
+        result = "引き分け！"
+    elif (player_hand == "グー" and computer_hand == "チョキ") or \
+         (player_hand == "チョキ" and computer_hand == "パー") or \
+         (player_hand == "パー" and computer_hand == "グー"):
+        result = "あなたの勝ち！🎉"
+    else:
