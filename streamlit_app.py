@@ -27,3 +27,6 @@ if st.button("勝負！"):
          (player_hand == "パー" and computer_hand == "グー"):
         result = "あなたの勝ち！🎉"
     else:
+        result = "あなたの負け！😢"
+
+    st.subheader(result)
