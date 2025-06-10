@@ -1,32 +1,37 @@
 import streamlit as st
 import random
+import sympy
 
 # タイトル
-st.title("じゃんけんゲーム")
+st.title("素因数分解ゲーム")
 
-# 選択肢
-hands = ["グー", "チョキ", "パー"]
+# ゲームのルール
+st.write("""
+素因数分解を行うゲームです。以下の手順でプレイできます：
+1. ランダムな整数が表示されます。
+2. その整数の素因数分解をしてください。
+3. 答えを入力したら、正誤を判定します。
+""")
 
-# プレイヤーの手
-player_hand = st.radio("あなたの手を選んでください", hands)
+# ランダムな数を生成
+number = random.randint(2, 100)  # 2～100の間でランダムな整数を生成
+st.write(f"この数の素因数分解をしてください: {number}")
 
-# ボタンで勝負
-if st.button("勝負！"):
-    # コンピューターの手をランダムに選ぶ
-    computer_hand = random.choice(hands)
+# プレイヤーの入力欄
+player_input = st.text_input("あなたの答えを入力してください (例: 2, 5, 7)")
 
-    # 結果の表示
-    st.write(f"あなたの手：{player_hand}")
-    st.write(f"コンピューターの手：{computer_hand}")
+# 解答ボタン
+if st.button("答え合わせ！"):
+    # sympyで素因数分解を実施
+    correct_factors = sympy.factorint(number)
+    # 正しい素因数分解の結果をリストに変換
+    correct_answer = sorted([str(factor) for factor in correct_factors.keys() for _ in range(correct_factors[factor])])
 
-    # 勝敗判定
-    if player_hand == computer_hand:
-        result = "引き分け！"
-    elif (player_hand == "グー" and computer_hand == "チョキ") or \
-         (player_hand == "チョキ" and computer_hand == "パー") or \
-         (player_hand == "パー" and computer_hand == "グー"):
-        result = "あなたの勝ち！🎉"
+    # プレイヤーの答えをリストに変換
+    player_answer = sorted(player_input.split(','))
+    
+    # 判定
+    if player_answer == correct_answer:
+        st.success("正解です！🎉")
     else:
-        result = "あなたの負け！😢"
-
-    st.subheader(result)
+        st.error(f"間違いです！ 正しい答えは: {', '.join(correct_answer)}")
