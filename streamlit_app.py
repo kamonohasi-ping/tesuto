@@ -180,19 +180,7 @@ with col2:
 # 現在の問題表示
 st.write(f"### この数の素因数分解をしてください: **{st.session_state.current_number}**")
 
-# ヒント機能
-if st.checkbox("ヒントを見る"):
-    # 2で割り切れるかどうかなど、簡単なヒントを表示
-    hints = []
-    if st.session_state.current_number % 2 == 0:
-        hints.append("この数は偶数です（2で割り切れます）")
-    if st.session_state.current_number % 3 == 0:
-        hints.append("この数は3で割り切れます")
-    if st.session_state.current_number % 5 == 0:
-        hints.append("この数は5で割り切れます")
-    
-    if hints:
-        st.info("💡 ヒント: " + "、".join(hints))
+
 
 # プレイヤーの入力欄
 player_input = st.text_input(
