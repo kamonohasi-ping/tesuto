@@ -1,15 +1,23 @@
-
 import streamlit as st
 import random
 import sympy
 import time
+from collections import Counter
 
-# タイトル
-st.title("素因数分解ゲーム 🔢")
+# --- ユーティリティ関数 ---
+def generate_number(difficulty_label):
+    if difficulty_label == "簡単 (2-50)":
+        return random.randint(2, 50)
+    elif difficulty_label == "普通 (2-100)":
+        return random.randint(2, 100)
+    elif difficulty_label == "難しい (50-200)":
+        return random.randint(50, 200)
+    else:
+        return random.randint(100, 500)
 
 # --- セッション初期化 ---
 if 'current_number' not in st.session_state:
-    st.session_state.current_number = random.randint(2, 100)
+    st.session_state.current_number = generate_number("普通 (2-100)")
 if 'score' not in st.session_state:
     st.session_state.score = 0
 if 'attempts' not in st.session_state:
@@ -23,6 +31,9 @@ if 'problem_number' not in st.session_state:
 if 'player_input' not in st.session_state:
     st.session_state.player_input = ""
 
+# --- タイトル ---
+st.title("素因数分解ゲーム 🔢")
+
 # --- モード選択 ---
 st.sidebar.title("🎮 ゲームモード")
 st.session_state.mode = st.sidebar.radio("モードを選択:", ["通常", "タイムアタック（20秒）"], key="mode_select")
@@ -30,14 +41,7 @@ st.session_state.mode = st.sidebar.radio("モードを選択:", ["通常", "タ�
 # --- 難易度設定 ---
 difficulty = st.selectbox("難易度を選んでください", ["簡単 (2-50)", "普通 (2-100)", "難しい (50-200)", "超難しい (100-500)"])
 if st.button("新しい難易度で問題を生成"):
-    if difficulty == "簡単 (2-50)":
-        st.session_state.current_number = random.randint(2, 50)
-    elif difficulty == "普通 (2-100)":
-        st.session_state.current_number = random.randint(2, 100)
-    elif difficulty == "難しい (50-200)":
-        st.session_state.current_number = random.randint(50, 200)
-    else:
-        st.session_state.current_number = random.randint(100, 500)
+    st.session_state.current_number = generate_number(difficulty)
     st.session_state.score = 0
     st.session_state.attempts = 0
     st.session_state.problem_number = 1
@@ -45,13 +49,13 @@ if st.button("新しい難易度で問題を生成"):
     st.session_state.player_input = ""
     st.rerun()
 
-# --- 問題番号・スコア表示 ---
+# --- ステータス表示 ---
 col1, col2, col3 = st.columns([1,1,1])
 col1.write(f"問題番号: {st.session_state.problem_number}")
 col2.metric("正解数", st.session_state.score)
 col3.metric("挑戦回数", st.session_state.attempts)
 
-# --- 問題表示 ---
+# --- 問題文 ---
 st.write(f"### この数の素因数分解をしてください: **{st.session_state.current_number}**")
 
 # --- ヒント表示 ---
@@ -77,15 +81,9 @@ if st.session_state.mode == "タイムアタック（20秒）":
 
     if remaining_time == 0:
         st.error("⌛ タイムオーバー！ 自動で次の問題へ進みます。")
+        time.sleep(1)  # 1秒表示
         st.session_state.attempts += 1
-        if difficulty == "簡単 (2-50)":
-            st.session_state.current_number = random.randint(2, 50)
-        elif difficulty == "普通 (2-100)":
-            st.session_state.current_number = random.randint(2, 100)
-        elif difficulty == "難しい (50-200)":
-            st.session_state.current_number = random.randint(50, 200)
-        else:
-            st.session_state.current_number = random.randint(100, 500)
+        st.session_state.current_number = generate_number(difficulty)
         st.session_state.problem_number += 1
         st.session_state.start_time = time.time()
         st.session_state.player_input = ""
@@ -108,37 +106,25 @@ if st.button("答え合わせ！", type="primary"):
             correct_answer.extend([factor] * count)
         correct_answer = sorted(correct_answer)
 
-        try:
+        # 入力チェックと評価
+        if not all(x.strip().isdigit() for x in player_input.split(',')):
+            st.error("⚠️ 入力には数字だけをカンマ区切りで入力してください（例: 2, 3, 5）")
+        else:
             player_answer = sorted([int(x.strip()) for x in player_input.split(',') if x.strip()])
             st.session_state.attempts += 1
 
-            if player_answer == correct_answer:
+            if Counter(player_answer) == Counter(correct_answer):
                 st.success("🎉 正解です！")
                 st.session_state.score += 1
-                factor_str = " × ".join(map(str, correct_answer))
-                st.write(f"{st.session_state.current_number} = {factor_str}")
             else:
                 st.error("❌ 間違いです！")
-                factor_str = " × ".join(map(str, correct_answer))
-                st.write(f"正解: {st.session_state.current_number} = {factor_str}")
+            st.write(f"正解: {st.session_state.current_number} = {' × '.join(map(str, correct_answer))}")
 
             st.session_state.start_time = time.time()
             st.session_state.problem_number += 1
+            st.session_state.current_number = generate_number(difficulty)
             st.session_state.player_input = ""
-
-            if difficulty == "簡単 (2-50)":
-                st.session_state.current_number = random.randint(2, 50)
-            elif difficulty == "普通 (2-100)":
-                st.session_state.current_number = random.randint(2, 100)
-            elif difficulty == "難しい (50-200)":
-                st.session_state.current_number = random.randint(50, 200)
-            else:
-                st.session_state.current_number = random.randint(100, 500)
-
             st.rerun()
-
-        except ValueError:
-            st.error("⚠️ 数値を正しく入力してください（例: 2, 3, 5）")
     else:
         st.warning("答えを入力してください")
 
@@ -146,14 +132,7 @@ if st.button("答え合わせ！", type="primary"):
 col1, col2 = st.columns(2)
 with col1:
     if st.button("新しい問題"):
-        if difficulty == "簡単 (2-50)":
-            st.session_state.current_number = random.randint(2, 50)
-        elif difficulty == "普通 (2-100)":
-            st.session_state.current_number = random.randint(2, 100)
-        elif difficulty == "難しい (50-200)":
-            st.session_state.current_number = random.randint(50, 200)
-        else:
-            st.session_state.current_number = random.randint(100, 500)
+        st.session_state.current_number = generate_number(difficulty)
         st.session_state.start_time = time.time()
         st.session_state.problem_number += 1
         st.session_state.player_input = ""
@@ -179,3 +158,4 @@ if st.session_state.attempts > 0:
         st.warning("💪 もう少し頑張りましょう！")
     else:
         st.error("🔥 練習あるのみです！")
+        
